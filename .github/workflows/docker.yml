@@ -25,9 +25,37 @@ jobs:
         with:
           path: ./tests/test-cases/${{ matrix.test-case }}.sh
 
-  leaf-ebuilds:
-    # Tests not passing yet, only run on manual triggers
+  docker-image-for-leaf-ebuilds:
+    # Tests depending on this job not passing yet, only run on manual triggers
     if: ${{ github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    env:
+      REGISTRY: ghcr.io
+    steps:
+      - uses: docker/login-action@v1
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+      - uses: ASzc/change-string-case-action@v1
+        id: repo_name
+        with:
+          string: ${{ github.actor }}
+      - uses: docker/build-push-action@v2
+        env:
+          REPO: ${{ steps.repo_name.outputs.lowercase }}
+          NAME: spark-overlay-test-leaf-ebuilds
+          TAG: latest
+        with:
+          file: ./.github/docker-images/leaf-ebuilds/Dockerfile
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.REPO }}/${{ env.NAME }}:${{ env.TAG }}
+
+  leaf-ebuilds:
+    needs: docker-image-for-leaf-ebuilds
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
