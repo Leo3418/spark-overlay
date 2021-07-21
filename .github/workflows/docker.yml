@@ -70,7 +70,6 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: 3.9
-      - uses: ./.github/actions/setup-leaf-ebuilds-job
       - uses: ./.github/actions/run-test-case
         with:
           path: ./tests/test-cases/${{ matrix.test-case }}.sh
