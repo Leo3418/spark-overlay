@@ -1,0 +1,5 @@
+media-libs/freetype harfbuzz
+media-libs/gd fontconfig truetype
+
+# Required to break circular dependency on media-libs/freetype
+media-libs/harfbuzz -cairo

@@ -19,10 +19,21 @@ ENV LEAF_EBUILDS_LIST="/var/cache/spark-overlay/leaf-ebuilds.txt"
 
 COPY . /var/db/repos/spark-overlay
 COPY .github/docker-images/leaf-ebuilds/repos.conf /etc/portage/repos.conf
+COPY .github/docker-images/leaf-ebuilds/package.use /etc/portage/package.use
 COPY .github/docker-images/leaf-ebuilds/scripts /tmp/scripts
 
+RUN emerge-webrsync
+
+# Install common dependencies
+ARG ATOMS="\
+    media-libs/freetype \
+    media-libs/gd \
+    media-libs/harfbuzz \
+"
+RUN emerge --color y --verbose --oneshot ${ATOMS}
+
 # Install pkgcore, which contains pquery
-RUN emerge-webrsync && emerge --color y --verbose --oneshot sys-apps/pkgcore
+RUN emerge --color y --verbose --oneshot sys-apps/pkgcore
 
 # Generate a list of leaf ebuilds to test
 RUN mkdir -p $(dirname "${LEAF_EBUILDS_LIST}") && \
@@ -30,4 +41,8 @@ RUN mkdir -p $(dirname "${LEAF_EBUILDS_LIST}") && \
 
 # ebuild repositories will be bind mounted by the test scripts later, must
 # remove them to make the mount point available
-RUN rm -r /var/db/repos/* /etc/portage/repos.conf/* /tmp/scripts/*
+RUN rm -r \
+    /var/db/repos/* \
+    /etc/portage/repos.conf/* \
+    /etc/portage/package.use/* \
+    /tmp/scripts/*
